@@ -11,10 +11,9 @@ let height = parseInt(d3.select("#svg-container").style("height"));
 const margin = { top: 6, right: 30, bottom: 60, left: 50 };
 
 // parsing & formatting
-const parseTime = d3.timeParse("%Y-%m-%dT00:00:00Z");
-const formatXAxis = d3.timeFormat("%b %Y");
-const formatDate = d3.timeFormat("%b %d, %Y");
-const formatPrice = d3.format(",.2f"); // thousand + 2 decimal point
+const parseTime = d3.timeParse("%Y");
+const formatXAxis = d3.timeFormat("%Y");
+const formatDate = d3.timeFormat("%Y");
 
 // scale
 const xScale = d3.scaleUtc().range([margin.left, width - margin.right]);
@@ -37,7 +36,7 @@ const line = d3
   .line()
   .curve(d3.curveCardinal)
   .x((d) => xScale(d.date_parsed))
-  .y((d) => yScale(d.price));
+  .y((d) => yScale(d.avg));
 
 // svg elements
 let path, circle, x, y;
@@ -48,7 +47,7 @@ let data = [];
 
 // d3.csv("data/BTC-USD.csv")
 //   .then((raw_data) => {
-d3.json("data/bitcoin-data.json")
+d3.json("data/global_data.json")
   .then((raw_data) => {
     console.log(raw_data);
     // data parsing
@@ -59,7 +58,7 @@ d3.json("data/bitcoin-data.json")
 
     //  scale updated
     xScale.domain(d3.extent(data, (d) => d.date_parsed));
-    yScale.domain(d3.extent(data, (d) => d.price));
+    yScale.domain(d3.extent(data, (d) => d.avg));
 
     // axis
     svg
@@ -85,14 +84,14 @@ d3.json("data/bitcoin-data.json")
 
     //  update text
     const lastValue = data[data.length - 1];
-    d3.select("#price").text(formatPrice(lastValue.price));
-    d3.select(".b-date").text(formatDate(lastValue.date_parsed));
+    d3.select("avg").text(formatTemperature(lastValue.avg));
+    d3.select("year").text(formatDate(lastValue.date_parsed));
 
     //  add circle
     circle = svg
       .append("circle")
       .attr("cx", xScale(lastValue.date_parsed))
-      .attr("cy", yScale(lastValue.price))
+      .attr("cy", yScale(lastValue.avg))
       .attr("r", 6)
       .attr("fill", "#8868cb");
     // .attr("stroke", "#fff")
@@ -114,7 +113,7 @@ window.addEventListener("resize", () => {
   yScale.range([height - margin.bottom, margin.top]);
 
   //  line updated
-  line.x((d) => xScale(d.date_parsed)).y((d) => yScale(d.price));
+  line.x((d) => xScale(d.date_parsed)).y((d) => yScale(d.avg));
 
   //  path updated
   path.attr("d", line);
@@ -124,7 +123,7 @@ window.addEventListener("resize", () => {
 
   circle
     .attr("cx", xScale(lastValue.date_parsed))
-    .attr("cy", yScale(lastValue.price));
+    .attr("cy", yScale(lastValue.avg));
 
   //  axis updated
   d3.select(".x-axis")
